@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ziel-Tracker Embed</title>
+  <style>
+    :root {
+      --bg: #061014;
+      --panel: rgba(6, 16, 20, 0.92);
+      --cyan: #00e7ff;
+      --green: #39ff14;
+      --yellow: #ffe600;
+      --text: #d9fbff;
+      --muted: #7ad9e2;
+      --border: rgba(0, 231, 255, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(0,231,255,0.15), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(57,255,20,0.12), transparent 30%),
+        linear-gradient(180deg, #03090c 0%, #071319 100%);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .hud {
+      width: min(920px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      box-shadow: 0 0 30px rgba(0, 231, 255, 0.12), inset 0 0 20px rgba(0, 231, 255, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hud::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(0,231,255,0.15) 0.8px, transparent 0.8px);
+      background-size: 14px 14px;
+      opacity: 0.25;
+      pointer-events: none;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 22px;
+      color: white;
+      letter-spacing: 0.08em;
+    }
+
+    .header .tag {
+      color: var(--cyan);
+      font-size: 12px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 18px;
+      padding: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel {
+      border: 1px solid var(--border);
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.22);
+      min-height: 100%;
+    }
+
+    .title {
+      color: var(--cyan);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      margin-bottom: 10px;
+    }
+
+    .rank {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--yellow);
+      margin-bottom: 18px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .goal-block {
+      margin-bottom: 16px;
+      padding: 14px;
+      border: 1px solid rgba(57,255,20,0.25);
+      background: rgba(57,255,20,0.04);
+    }
+
+    .goal-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .goal-name {
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .goal-percent {
+      color: var(--green);
+      font-weight: 800;
+      min-width: 56px;
+      text-align: right;
+    }
+
+    .goal-text {
+      width: 100%;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(0,231,255,0.25);
+      color: white;
+      padding: 10px 12px;
+      font-size: 14px;
+      margin-bottom: 10px;
+      outline: none;
+    }
+
+    .goal-text::placeholder { color: #6dbec7; }
+
+    .progress {
+      width: 100%;
+      height: 14px;
+      border: 1px solid rgba(0,231,255,0.3);
+      background: rgba(0,0,0,0.45);
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--green), #a7ff3f);
+      box-shadow: 0 0 14px rgba(57,255,20,0.45);
+      transition: width 0.25s ease;
+    }
+
+    .inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .inputs input {
+      width: 100%;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(0,231,255,0.25);
+      color: white;
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .side-box {
+      margin-bottom: 16px;
+      padding: 14px;
+      border: 1px solid rgba(0,231,255,0.22);
+      background: rgba(0,231,255,0.04);
+    }
+
+    .side-box p {
+      margin: 8px 0 0;
+      line-height: 1.45;
+      color: #e6ffff;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .stat {
+      border: 1px solid rgba(255,230,0,0.25);
+      background: rgba(255,230,0,0.04);
+      padding: 12px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--yellow);
+    }
+
+    .footer {
+      padding: 0 18px 18px;
+      position: relative;
+      z-index: 1;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr; }
+      .inputs { grid-template-columns: 1fr; }
+      .rank { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="hud">
+    <div class="header">
+      <div>
+        <div class="tag">System.Goals.v1</div>
+        <h1>Status Profile</h1>
+      </div>
+      <div class="tag">Goal Sync: Active</div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <div class="title">Main Objective Panel</div>
+        <div class="rank">Goal Tracker</div>
+
+        <div class="goal-block" data-goal="week">
+          <div class="goal-top">
+            <div class="goal-name">Wochenziel</div>
+            <div class="goal-percent" id="weekPercent">0%</div>
+          </div>
+          <input class="goal-text" id="weekText" placeholder="z. B. 5 Trainings, 3 Zeichnungen, 7/7 Ernährung" />
+          <div class="progress"><div class="bar" id="weekBar"></div></div>
+          <div class="inputs">
+            <input type="number" id="weekCurrent" placeholder="Aktuell" min="0" />
+            <input type="number" id="weekTarget" placeholder="Ziel" min="1" />
+          </div>
+        </div>
+
+        <div class="goal-block" data-goal="month">
+          <div class="goal-top">
+            <div class="goal-name">Monatsziel</div>
+            <div class="goal-percent" id="monthPercent">0%</div>
+          </div>
+          <input class="goal-text" id="monthText" placeholder="z. B. 20 Sporteinheiten oder 10 fertige Werke" />
+          <div class="progress"><div class="bar" id="monthBar"></div></div>
+          <div class="inputs">
+            <input type="number" id="monthCurrent" placeholder="Aktuell" min="0" />
+            <input type="number" id="monthTarget" placeholder="Ziel" min="1" />
+          </div>
+        </div>
+
+        <div class="goal-block" data-goal="year">
+          <div class="goal-top">
+            <div class="goal-name">Jahresziel</div>
+            <div class="goal-percent" id="yearPercent">0%</div>
+          </div>
+          <input class="goal-text" id="yearText" placeholder="z. B. Portfolio fertig, 100 Trainings, Umsatz-Ziel" />
+          <div class="progress"><div class="bar" id="yearBar"></div></div>
+          <div class="inputs">
+            <input type="number" id="yearCurrent" placeholder="Aktuell" min="0" />
+            <input type="number" id="yearTarget" placeholder="Ziel" min="1" />
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="title">System Message</div>
+        <div class="side-box">
+          <strong style="color: var(--cyan); text-transform: uppercase; letter-spacing: 0.1em;">The System</strong>
+          <p>Tracke deine Weekly-, Monthly- und Yearly-Ziele in einem kleinen Solo-Leveling-artigen HUD.</p>
+        </div>
+
+        <div class="title">Progress Summary</div>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-label">Weekly</div>
+            <div class="stat-value" id="weekMini">0%</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Monthly</div>
+            <div class="stat-value" id="monthMini">0%</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Yearly</div>
+            <div class="stat-value" id="yearMini">0%</div>
+          </div>
+        </div>
+
+        <div class="title" style="margin-top: 18px;">Hinweis</div>
+        <div class="side-box">
+          <p>Alle Daten werden lokal im Browser gespeichert. Wenn du das als Notion-Embed benutzt, bleiben deine Einträge erhalten, solange derselbe Browser die Seite lädt.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">Hunter Interface // Simple Goal Embed for Notion</div>
+  </div>
+
+  <script>
+    const goals = ["week", "month", "year"];
+
+    function updateGoal(name) {
+      const current = Number(document.getElementById(`${name}Current`).value) || 0;
+      const target = Number(document.getElementById(`${name}Target`).value) || 0;
+      const percent = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
+
+      document.getElementById(`${name}Bar`).style.width = `${percent}%`;
+      document.getElementById(`${name}Percent`).textContent = `${percent}%`;
+      document.getElementById(`${name}Mini`).textContent = `${percent}%`;
+
+      saveState();
+    }
+
+    function saveState() {
+      const state = {};
+      goals.forEach(name => {
+        state[name] = {
+          text: document.getElementById(`${name}Text`).value,
+          current: document.getElementById(`${name}Current`).value,
+          target: document.getElementById(`${name}Target`).value
+        };
+      });
+      localStorage.setItem("notionGoalEmbedState", JSON.stringify(state));
+    }
+
+    function loadState() {
+      const raw = localStorage.getItem("notionGoalEmbedState");
+      if (!raw) return;
+
+      const state = JSON.parse(raw);
+      goals.forEach(name => {
+        if (!state[name]) return;
+        document.getElementById(`${name}Text`).value = state[name].text || "";
+        document.getElementById(`${name}Current`).value = state[name].current || "";
+        document.getElementById(`${name}Target`).value = state[name].target || "";
+        updateGoal(name);
+      });
+    }
+
+    goals.forEach(name => {
+      ["Text", "Current", "Target"].forEach(suffix => {
+        document.getElementById(`${name}${suffix}`).addEventListener("input", () => {
+          if (suffix !== "Text") updateGoal(name);
+          else saveState();
+        });
+      });
+    });
+
+    loadState();
+  </script>
+</body>
+</html>
